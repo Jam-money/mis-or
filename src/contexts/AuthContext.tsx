@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const fetchRole = async (userId: string) => {
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("profiles")
       .select("role, office_id")
       .eq("id", userId)
@@ -48,6 +48,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(u);
       if (u) fetchRole(u.id).finally(() => setLoading(false));
       else setLoading(false);
+    }).catch((error) => {
+      console.error("Session error:", error);
+      supabase.auth.signOut();
+      setUser(null);
+      setRole(null);
+      setOfficeId(null);
+      setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {

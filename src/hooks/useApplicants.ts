@@ -33,6 +33,9 @@ export type Applicant = {
 const TOTAL_INTERVIEW_ACCOUNTS = 4;
 export { TOTAL_INTERVIEW_ACCOUNTS };
 
+// Bucket name must match the bucket (and storage policies) in Supabase
+const DOCS_BUCKET = "applicant-docs";
+
 export async function uploadApplicantDoc(
   applicantName: string,
   docType: string,
@@ -43,12 +46,12 @@ export async function uploadApplicantDoc(
   const path = `${safeName}/${docType}_${Date.now()}.${ext}`;
 
   const { error: uploadError } = await supabase.storage
-    .from("applicant-documents")
+    .from(DOCS_BUCKET)
     .upload(path, file, { upsert: true });
 
   if (uploadError) throw uploadError;
 
-  const { data } = supabase.storage.from("applicant-documents").getPublicUrl(path);
+  const { data } = supabase.storage.from(DOCS_BUCKET).getPublicUrl(path);
   return data.publicUrl;
 }
 
@@ -185,14 +188,14 @@ export function useDeleteApplicant() {
         .from("assessments")
         .delete()
         .eq("applicant_id", id);
-      
+
       if (assessmentError) throw assessmentError;
 
       const { error: interviewError } = await supabase
         .from("interviews")
         .delete()
         .eq("applicant_id", id);
-      
+
       if (interviewError) throw interviewError;
 
       // Then delete the applicant
