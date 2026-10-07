@@ -384,14 +384,17 @@ export default function ApplicantsPage() {
   const handleCreate = async (data: FormData, docs: DocFiles) => {
     setUploading(true);
     try {
-      const [doc_application_letter, doc_pds, doc_wes, doc_diploma, doc_tor] = await Promise.all([
+      const uploadPromises = [
         uploadApplicantDoc(data.name, "application_letter", docs.application_letter!),
         uploadApplicantDoc(data.name, "pds",                docs.pds!),
         uploadApplicantDoc(data.name, "wes",                docs.wes!),
         uploadApplicantDoc(data.name, "diploma",            docs.diploma!),
         uploadApplicantDoc(data.name, "tor",                docs.tor!),
-      ]);
-      const doc_ipcr = docs.ipcr ? await uploadApplicantDoc(data.name, "ipcr", docs.ipcr) : null;
+      ];
+      if (docs.ipcr) {
+        uploadPromises.push(uploadApplicantDoc(data.name, "ipcr", docs.ipcr));
+      }
+      const [doc_application_letter, doc_pds, doc_wes, doc_diploma, doc_tor, doc_ipcr] = await Promise.all(uploadPromises);
       createMut.mutate(
         { ...data, doc_application_letter, doc_pds, doc_wes, doc_diploma, doc_tor, doc_ipcr },
         { onSuccess: () => setDialogOpen(false) }
